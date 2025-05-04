@@ -93,7 +93,7 @@
   {% if todays_guests %}
   <table>
     <tr>
-      <th>Name</th><th>Date</th><th>Time</th><th>Guests</th>
+      <th>Name</th><th>Date</th><th>Time</th><th>Guests</th><th>special request</th>
     </tr>
     {% for guest in todays_guests %}
     <tr>
@@ -101,6 +101,7 @@
       <td>{{ guest['reservation_date'] }}</td>
       <td>{{ guest['reservation_time'] }}</td>
       <td>{{ guest['number_of_guests'] }}</td>
+	  <td>{{ guest['special_request'] }}</td>
     </tr>
     {% endfor %}
   </table>
