@@ -187,6 +187,7 @@ def reservations():
         reservation_date = request.form['date']
         reservation_time = request.form['time']
         number_of_guests = request.form['guests']
+        special_request = request.form.get('special_request')
         conn = restaurant_db()
         cursor = conn.cursor()
         cursor.execute('''INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, number_of_guests,special_request)
