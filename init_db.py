@@ -66,7 +66,8 @@ def create_all_tables():
             phone TEXT,
             reservation_date TEXT,
             reservation_time TEXT,
-            number_of_guests INTEGER
+            number_of_guests INTEGER,
+            special_request TEXT
         )
     ''')
 
