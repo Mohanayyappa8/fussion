@@ -37,6 +37,18 @@ def add_column_if_missing():
     conn.close()
 
 
+def ensure_admin_table():
+    db = restaurant_db()
+    cursor = db.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS admin_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL)''')
+    db.commit()
+    cursor.close()
+    db.close()
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -237,9 +249,9 @@ def admin_gallery():
 
 
 create_all_tables()
-
-add_column_if_missing()
 ensure_admin_table()
+add_column_if_missing()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
