@@ -236,9 +236,10 @@ def admin_gallery():
 
 
 
-ensure_admin_table()
-add_column_if_missing()
 create_all_tables()
+
+add_column_if_missing()
+ensure_admin_table()
 
 if __name__ == '__main__':
     app.run(debug=True)
