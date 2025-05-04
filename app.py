@@ -14,11 +14,27 @@ UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
 def restaurant_db():
     db_name = os.getenv("DB_NAME", "restaurant.db")
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     return conn
+
+def add_column_if_missing():
+    conn = restaurant_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT special_request FROM reservations LIMIT 1")
+    except sqlite3.OperationalError:
+        try:
+            cursor.execute("ALTER TABLE reservations ADD COLUMN special_request TEXT")
+            print("✅ 'special_request' column added to reservations table.")
+        except Exception as e:
+            print(f"❌ Failed to add column: {e}")
+    cursor.close()
+    conn.close()
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -216,6 +232,12 @@ def admin_gallery():
     cursor.close()
     db.close()
     return render_template('admin_gallery.html', gallery_items=gallery_items)
+
+
+
+ensure_admin_table()
+add_column_if_missing()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
