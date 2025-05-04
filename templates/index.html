@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fusion Affair</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Montserrat&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+</head>
+
+<body>
+
+<header>
+  <nav class="navbar">
+    <div class="logo">Fusion Affair</div>
+    <ul class="nav-links">
+      <li><a href="#hero">Home</a></li>
+      <li><a href="#about-us">About</a></li>
+      <li><a href="#menu-preview">Menu</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#reservations">Reservations</a></li>
+      <li><a href="#vibe-preview">Events</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section id="hero" class="hero">
+  <h1>Flavours Without Borders</h1>
+  <p>Hyderabad’s first Indo-Italian fusion bar & kitchen</p>
+  <a href="#menu-preview" class="cta-button">Explore the Menu</a>
+
+</section>
+
+<section id="about-us" class="about-us">
+  <div class="container">
+    <h2>Rooted in Culture. Crafted with Passion.</h2>
+    <p>At <span>Fusion Affair</span>, every plate tells a story — one that begins in the spice-laden streets of Hyderabad and flows into the rustic kitchens of Italy.</p>
+  </div>
+  <div class="container">
+    <h2>Our Story</h2>
+    <p class="subtext">A fusion born from passion, travel, and flavor.</p>
+
+    <p>
+      Fusion Affair was born from a dream — a vision to bridge two rich culinary worlds: the fiery soul of Indian kitchens and the rustic elegance of Italian cuisine. Our journey began in the bustling streets of Hyderabad, where spices whisper stories passed down through generations. It continued through the vineyards and trattorias of Italy, where every dish is a celebration of simplicity, love, and ingredients that speak for themselves.
+    </p>
+
+    <p>
+      Our head chef, once a curry-loving dreamer in India, found himself immersed in the heart of Italian kitchens in the UK — learning, evolving, and falling in love with every swirl of pasta and crackle of the Jasper oven. What started with curiosity became obsession, and what began with recipes became a life’s purpose.
+    </p>
+
+    <p>
+      Today, Fusion Affair is more than a restaurant — it's an experience. An open kitchen that invites you in. A bar that tells stories in every pour. A vibe that’s as unforgettable as the food we serve. Every dish, every detail is crafted to honor the legacy of both cultures while creating something uniquely ours.
+    </p>
+
+    <p style="font-style: italic; color: #f5c842; margin-top: 1rem;">
+      From Hyderabad to Tuscany, welcome to the affair where fusion isn’t a trend — it’s a lifestyle.
+    </p>
+  </div>
+</section>
+  <!-- Signature Dishes Section -->
+    <!-- Signature Dishes Section -->
+<section id="signature" class="signature-section">
+  <div class="container">
+    <h2>Signature Dishes</h2>
+    <p class="subtext">Explore our signature dishes that blend the best of Indo-Italian flavors.</p>
+    <button id="showSignature" class="cta-button">Show Signature Dishes</button>
+  </div>
+</section>
+
+    <!-- Menu Preview Section -->
+    <section id="menu-preview" class="menu-preview">
+        <h2>Menu Preview</h2>
+        <p>Get a sneak peek of our menu items</p>
+        <button id="openMenu" class="cta-button">Open Menu</button>
+    </section>
+
+   <!-- Menu Items Pop-up Section -->
+    <div id="menuPopup" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeMenu">&times;</span>
+        <h2>Full Menu</h2>
+        <div id="menuItems" class="menu-items"></div>  <!-- EMPTY initially -->
+    </div>
+</div>
+
+<!-- Signature Dishes Popup -->
+<div id="signaturePopup" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeSignature">&times;</span>
+        <h2>Signature Dishes</h2>
+        <div id="signatureDishes" class="menu-items"></div> <!-- EMPTY initially -->
+    </div>
+</div>
+
+
+<!-- Menu Items (This will be populated dynamically by Flask) -->
+
+
+<section id="vibe-preview" class="vibe-preview">
+  <div class="container">
+    <h2>The Vibe at Fusion Affair</h2>
+    <p class="subtext">Where Indo-Italian soul meets elegant nightlife...</p>
+    <div class="vibe-grid">
+      {% for vibe in vibe_items %}
+      <div class="vibe-item">
+        <img src="{{ vibe.image_url }}" alt="Fusion Vibe Image">
+        <p class="caption">{{ vibe.caption }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="gallery" class="gallery">
+  <div class="container">
+    <h2>Gallery</h2>
+    <p class="subtext">A glimpse into the Indo-Italian soul of Fusion Affair</p>
+    <div class="gallery-grid">
+      {% for image in gallery_items %}
+     <div> <img src="{{ image.image_url }}" alt="{{ image.alt_text }}">
+	   <p class="caption">{{ image.alt_text }}</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+
+<section id="reservations" class="reservation-section">
+  <div class="reservation-wrapper">
+    <h2>Reserve Your Table</h2>
+    <p class="tagline">Book your spot at Fusion Affair</p>
+    <a href="/reservations" class="btn-reserve">Make a Reservation</a>
+
+  </div>
+</section>
+<!-- Contact Section -->
+<section id="contact" class="contact-section">
+  <div class="contact-wrapper">
+    <h2>Contact Us</h2>
+    <p class="tagline">Let’s connect — we’d love to hear from you!</p>
+
+    <div class="contact-details">
+      <div class="info">
+        <p><strong>📍 Address:</strong> Road No. 45, Jubilee Hills, Hyderabad</p>
+        <p><strong>📞 Phone:</strong> +91 98765 43210</p>
+        <p><strong>📧 Email:</strong> hello@fusionaffair.in</p>
+      </div>
+
+      <form class="contact-form">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <textarea name="message" placeholder="Your Message" rows="4" required></textarea>
+        <button type="submit" class="contact-btn">Send Message</button>
+      </form>
+    </div>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/+918187879186" target="_blank" class="whatsapp-button">
+      💬 Chat with us on WhatsApp
+    </a>
+  </div>
+</section>
+<!-- Instagram Feed Section -->
+<section id="instagram" class="gallery-section">
+
+  <div class="gallery-wrapper">
+    <h2>Follow Us On Instagram</h2>
+    <p class="tagline">Live updates, behind-the-scenes, and mouth-watering stories</p>
+
+    <!-- Light Instagram Feed Embed -->
+    <div class="instagram-embed">
+      <iframe src="https://www.instagram.com/italian_cuisine_7/embed" 
+              frameborder="0"
+              scrolling="no"
+              allowtransparency="true"
+              style="width:100%; height:500px; max-width:500px; border:none; overflow:hidden;">
+      </iframe>
+    </div>
+
+    <a href="https://www.instagram.com/italian_cuisine_7" target="_blank" class="insta-follow-btn">
+      📸 Follow @italian_cusien_7
+    </a>
+  </div>
+</section>
+<!-- Footer Section -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-logo">
+      <h3>Fusion Affair</h3>
+      <p>Flavours Without Borders</p>
+    </div>
+
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#menu-preview">Menu</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#reservations">Reservations</a></li>
+        <li><a href="#events">Events</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-contact">
+      <h4>Contact Us</h4>
+      <p>📍 Jubilee Hills, Hyderabad</p>
+      <p>📞 +91 98765 43210</p>
+      <p>📧 hello@fusionaffair.in</p>
+    </div>
+
+    <div class="footer-social">
+      <h4>Connect</h4>
+      <a href="https://www.instagram.com/italian_cusien_7" target="_blank">Instagram</a>
+      <a href="#">WhatsApp</a> <!-- Replace with actual link -->
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2025 Fusion Affair. All rights reserved.</p>
+  </div>
+</footer>
+
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

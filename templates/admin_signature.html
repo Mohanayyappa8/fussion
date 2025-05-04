@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Signature Dishes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        form {
+            margin-bottom: 30px;
+        }
+        input, textarea {
+            display: block;
+            margin-bottom: 15px;
+            padding: 8px;
+            width: 100%;
+        }
+        .dish-card {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .dish-card img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        .delete-btn {
+            color: red;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<a href="/admin/dashboard" style="
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #dfaf2c;
+  color: black;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 6px;
+  margin-bottom: 20px;
+">
+  ← Back to Dashboard
+</a>
+
+    <div class="container">
+        <h2>Manage Signature Dishes</h2>
+        <form action="/admin/signature" method="POST" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Dish Name" required>
+            <textarea name="description" placeholder="Description" rows="3" required></textarea>
+            <input type="text" name="price" placeholder="Price (₹)" required>
+            <input type="file" name="image" accept="image/*" required>
+            <button type="submit">Add Dish</button>
+        </form>
+
+        {% for dish in signature_dishes %}
+            <div class="dish-card">
+                <img src="{{ dish.image_url }}" alt="{{ dish.name }}">
+                <h3>{{ dish.name }}</h3>
+                <p>{{ dish.description }}</p>
+                <p><strong>₹{{ dish.price }}</strong></p>
+				<a href="{{ url_for('edit_signature_dish', dish_id=dish['id']) }}" style="color: #f0c330;">Edit</a>
+
+                <a href="/admin/signature/delete/{{ dish.id }}" class="delete-btn">Delete</a>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

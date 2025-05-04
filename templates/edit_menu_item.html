@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Menu Item</title>
+</head>
+<body style="background: #1a1a1a; color: white; padding: 40px;">
+
+  <h2>Edit Menu Item</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <label>Name:</label><br>
+    <input type="text" name="name" value="{{ item['name'] }}" required><br><br>
+
+    <label>Description:</label><br>
+    <textarea name="description" required>{{ item['description'] }}</textarea><br><br>
+
+    <label>Price:</label><br>
+    <input type="text" name="price" value="{{ item['price'] }}" required><br><br>
+
+    <label>Update Image (optional):</label><br>
+    <input type="file" name="image"><br><br>
+
+    {% if item['image_url'] %}
+      <p>Current Image:</p>
+      <img src="{{ item['image_url'] }}" width="150"><br>
+    {% endif %}
+
+    <button type="submit">Update Item</button>
+    <br><br>
+    <a href="/admin/menu" style="color: #f0c330;">Back to Menu</a>
+  </form>
+</body>
+</html>

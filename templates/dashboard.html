@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1a1a1a;
+      color: #f9f5f0;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .dashboard-container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      color: #dfaf2c;
+    }
+
+    main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      justify-content: space-between;
+    }
+
+    .guests-section,
+    .admin-controls {
+      background-color: #2a2a2a;
+      padding: 20px;
+      border-radius: 10px;
+      flex: 1 1 45%;
+    }
+
+    .guests-section table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .guests-section th,
+    .guests-section td {
+      padding: 8px 12px;
+      border: 1px solid #444;
+      text-align: left;
+    }
+
+    .guests-section th {
+      background-color: #222;
+      color: #f0c330;
+    }
+
+    .admin-controls ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .admin-controls li {
+      margin: 10px 0;
+    }
+
+    .admin-controls a {
+      text-decoration: none;
+      color: #dfaf2c;
+      font-weight: bold;
+    }
+
+    .admin-controls a:hover {
+      color: #f3c845;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <header>
+      <h1>Welcome, {{ admin_user }}</h1>
+      <p>Total Reservations: <strong>{{ booking_count }}</strong></p>
+    </header>
+
+    <main>
+  <div class="guests-section">
+  <h3>Today's Reservations</h3>
+  {% if todays_guests %}
+  <table>
+    <tr>
+      <th>Name</th><th>Date</th><th>Time</th><th>Guests</th>
+    </tr>
+    {% for guest in todays_guests %}
+    <tr>
+      <td>{{ guest['name'] }}</td>
+      <td>{{ guest['reservation_date'] }}</td>
+      <td>{{ guest['reservation_time'] }}</td>
+      <td>{{ guest['number_of_guests'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No guests have booked yet today.</p>
+  {% endif %}
+
+  <h3 style="margin-top: 40px;">Upcoming Reservations</h3>
+  {% if upcoming_guests %}
+  <table>
+    <tr>
+      <th>Name</th><th>Date</th><th>Time</th><th>Guests</th>
+    </tr>
+    {% for guest in upcoming_guests %}
+    <tr>
+      <td>{{ guest['name'] }}</td>
+      <td>{{ guest['reservation_date'] }}</td>
+      <td>{{ guest['reservation_time'] }}</td>
+      <td>{{ guest['number_of_guests'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No upcoming reservations yet.</p>
+  {% endif %}
+</div>
+
+
+
+      <div class="admin-controls">
+        <h2>Admin Controls</h2>
+        <ul>
+          {% for label, link in admin_controls.items() %}
+          <li><a href="{{ link }}">{{ label }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

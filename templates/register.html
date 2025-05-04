@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Register - Fusion Affair</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      background-color: #111;
+      font-family: 'Montserrat', sans-serif;
+      color: #f9f5f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .register-container {
+      background-color: #1a1a1a;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 400px;
+    }
+    .register-container h2 {
+      color: #dfaf2c;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .register-container input[type="text"],
+    .register-container input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #2a2a2a;
+      color: #fff;
+    }
+    .register-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #dfaf2c;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .register-container button:hover {
+      background-color: #f3c845;
+    }
+    .register-container .login-link {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .register-container .login-link a {
+      color: #dfaf2c;
+      text-decoration: none;
+    }
+    .register-container .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Register Admin</h2>
+    <form method="POST" action="/admin/register">
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+      <button type="submit">Register</button>
+    </form>
+    <div class="login-link">
+      <p>Already registered? <a href="/admin/login">Login here</a></p>
+    </div>
+  </div>
+</body>
+</html>

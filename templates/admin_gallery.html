@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Gallery</title>
+  <style>
+    body { background: #1a1a1a; color: white; font-family: Arial; padding: 40px; }
+    h2 { color: #dfaf2c; }
+    label, input, textarea { display: block; margin-top: 10px; width: 100%; }
+    input[type="file"] { margin-bottom: 20px; }
+    button { margin-top: 15px; padding: 10px 20px; background: #dfaf2c; border: none; color: black; font-weight: bold; cursor: pointer; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 40px; }
+    .gallery-item { background: #2a2a2a; padding: 15px; border-radius: 10px; text-align: center; }
+    .gallery-item img { width: 100%; border-radius: 8px; }
+    .alt-text { margin-top: 10px; font-size: 0.9em; color: #ccc; }
+    .delete-btn { color: red; text-decoration: none; font-size: 0.9em; display: inline-block; margin-top: 8px; }
+    .back { display: inline-block; margin-bottom: 20px; background: #dfaf2c; color: black; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <a href="/admin/dashboard" class="back">← Back to Dashboard</a>
+  <h2>Manage Gallery</h2>
+
+  <form method="POST" enctype="multipart/form-data">
+    <label>Alt Text:</label>
+    <input type="text" name="alt_text" required>
+
+    <label>Upload Image:</label>
+    <input type="file" name="image" required />
+
+    <button type="submit">Add Image</button>
+  </form>
+
+  <div class="gallery-grid">
+    {% for item in gallery_items %}
+      <div class="gallery-item">
+        <img src="{{ item.image_url }}" alt="{{ item.alt_text }}">
+        <p class="alt-text">{{ item.alt_text }}</p>
+        <a class="delete-btn" href="/admin/gallery/delete/{{ item.id }}">Delete</a>
+      </div>
+    {% endfor %}
+  </div>
+  <h3>Gallery Items</h3>
+<div class="gallery-grid">
+  {% for photo in gallery_items %}
+    <div class="gallery-item">
+      <img src="{{ photo.image_url }}" alt="{{ photo.alt_text }}">
+      <p>{{ photo.alt_text }}</p>
+      <form action="/admin/gallery/delete/{{ photo.id }}" method="post" style="margin-top: 5px;">
+        <button type="submit" onclick="return confirm('Delete this gallery image?')">Delete</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+
+</body>
+</html>
