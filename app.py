@@ -4,15 +4,19 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import date
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
+app.secret_key = os.getenv("SECRET_KEY", "fallbacksecret")
+
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def restaurant_db():
-    conn = sqlite3.connect('restaurant.db')
+    db_name = os.getenv("DB_NAME", "restaurant.db")
+    conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -215,3 +219,5 @@ def admin_gallery():
 
 if __name__ == '__main__':
     app.run(debug=True)
+from init_db import create_all_tables
+create_all_tables()
