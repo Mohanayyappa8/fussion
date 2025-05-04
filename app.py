@@ -97,10 +97,10 @@ def admin_dashboard():
     db.commit()
     cursor.execute('SELECT COUNT(*) AS total FROM reservations')
     booking_count = cursor.fetchone()['total']
-    cursor.execute('''SELECT name, reservation_date, reservation_time, number_of_guests FROM reservations
+    cursor.execute('''SELECT name, reservation_date, reservation_time, number_of_guests, special_request FROM reservations
         WHERE DATE(reservation_date) = ? ORDER BY reservation_time ASC''', (today,))
     todays_guests = cursor.fetchall()
-    cursor.execute('''SELECT name, reservation_date, reservation_time, number_of_guests FROM reservations
+    cursor.execute('''SELECT name, reservation_date, reservation_time, number_of_guests, special_request FROM reservations
         WHERE DATE(reservation_date) > ? ORDER BY reservation_date ASC, reservation_time ASC''', (today,))
     upcoming_guests = cursor.fetchall()
     cursor.close()
@@ -160,8 +160,8 @@ def reservations():
         number_of_guests = request.form['guests']
         conn = restaurant_db()
         cursor = conn.cursor()
-        cursor.execute('''INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, number_of_guests)
-            VALUES (?, ?, ?, ?, ?, ?)''', (name, email, phone, reservation_date, reservation_time, number_of_guests))
+        cursor.execute('''INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, number_of_guests,special_request)
+            VALUES (?, ?, ?, ?, ?, ?,?)''', (name, email, phone, reservation_date, reservation_time, number_of_guests, special_request))
         conn.commit()
         cursor.close()
         conn.close()
