@@ -160,21 +160,85 @@ def reservations():
         return redirect('/')
     return render_template('reservations.html')
 
-
-@app.route('/admin/menu')
+# ------------------ ADMIN: MENU ITEMS ------------------
+@app.route('/admin/menu', methods=['GET', 'POST'])
 def admin_menu():
-    return render_template('admin_menu.html')
-@app.route('/admin/signature')
+    if 'admin_user' not in session:
+        return redirect('/admin/login')
+
+    db = restaurant_db()
+    cursor = db.cursor()
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        price = request.form['price']
+        image_url = request.form['image_url']
+        cursor.execute("INSERT INTO menu_items (name, description, price, image_url) VALUES (%s, %s, %s, %s)",
+                       (name, description, price, image_url))
+        db.commit()
+    cursor.execute("SELECT * FROM menu_items")
+    menu_items = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return render_template('admin_menu.html', menu_items=menu_items)
+
+# ------------------ ADMIN: SIGNATURE DISHES ------------------
+@app.route('/admin/signature', methods=['GET', 'POST'])
 def admin_signature():
-    return render_template('admin_signature.html')
+    if 'admin_user' not in session:
+        return redirect('/admin/login')
 
-@app.route('/admin/fusion-vibe')
+    db = restaurant_db()
+    cursor = db.cursor()
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        image_url = request.form['image_url']
+        cursor.execute("INSERT INTO signature_dishes (name, description, image_url) VALUES (%s, %s, %s)",
+                       (name, description, image_url))
+        db.commit()
+    cursor.execute("SELECT * FROM signature_dishes")
+    signature_items = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return render_template('admin_signature.html', signature_items=signature_items)
+
+# ------------------ ADMIN: FUSION VIBE ------------------
+@app.route('/admin/fusion-vibe', methods=['GET', 'POST'])
 def admin_fusion_vibe():
-    return render_template('admin_fusion_vibe.html')
+    if 'admin_user' not in session:
+        return redirect('/admin/login')
 
-@app.route('/admin/gallery')
+    db = restaurant_db()
+    cursor = db.cursor()
+    if request.method == 'POST':
+        image_url = request.form['image_url']
+        cursor.execute("INSERT INTO fusion_vibe (image_url) VALUES (%s)", (image_url,))
+        db.commit()
+    cursor.execute("SELECT * FROM fusion_vibe")
+    fusion_items = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return render_template('admin_fusion_vibe.html', fusion_items=fusion_items)
+
+# ------------------ ADMIN: GALLERY ------------------
+@app.route('/admin/gallery', methods=['GET', 'POST'])
 def admin_gallery():
-    return render_template('admin_gallery.html')
+    if 'admin_user' not in session:
+        return redirect('/admin/login')
+
+    db = restaurant_db()
+    cursor = db.cursor()
+    if request.method == 'POST':
+        image_url = request.form['image_url']
+        cursor.execute("INSERT INTO gallery (image_url) VALUES (%s)", (image_url,))
+        db.commit()
+    cursor.execute("SELECT * FROM gallery")
+    gallery_items = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return render_template('admin_gallery.html', gallery_items=gallery_items)
+
 
 
 create_all_tables()
