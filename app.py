@@ -160,6 +160,23 @@ def reservations():
         return redirect('/')
     return render_template('reservations.html')
 
+
+@app.route('/admin/menu')
+def admin_menu():
+    return render_template('admin_menu.html')
+@app.route('/admin/signature')
+def admin_signature():
+    return render_template('admin_signature.html')
+
+@app.route('/admin/fusion-vibe')
+def admin_fusion_vibe():
+    return render_template('admin_fusion_vibe.html')
+
+@app.route('/admin/gallery')
+def admin_gallery():
+    return render_template('admin_gallery.html')
+
+
 create_all_tables()
 
 if __name__ == '__main__':
