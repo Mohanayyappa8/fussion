@@ -161,6 +161,8 @@ def reservations():
     return render_template('reservations.html')
 
 # ------------------ ADMIN: MENU ITEMS ------------------
+from werkzeug.utils import secure_filename
+
 @app.route('/admin/menu', methods=['GET', 'POST'])
 def admin_menu():
     if 'admin_user' not in session:
@@ -168,14 +170,23 @@ def admin_menu():
 
     db = restaurant_db()
     cursor = db.cursor()
+
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
         price = request.form['price']
-        image_url = request.form['image_url']
-        cursor.execute("INSERT INTO menu_items (name, description, price, image_url) VALUES (%s, %s, %s, %s)",
-                       (name, description, price, image_url))
-        db.commit()
+
+        file = request.files['image']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            image_url = '/' + filepath.replace('\\', '/')
+
+            cursor.execute("INSERT INTO menu_items (name, description, price, image_url) VALUES (%s, %s, %s, %s)",
+                           (name, description, price, image_url))
+            db.commit()
+
     cursor.execute("SELECT * FROM menu_items")
     menu_items = cursor.fetchall()
     cursor.close()
