@@ -9,6 +9,10 @@ from init_db import create_all_tables
 from dotenv import load_dotenv
 load_dotenv()
 
+
+from init_db import create_all_tables
+create_all_tables()
+
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "fallbacksecret")
 
