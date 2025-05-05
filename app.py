@@ -1,13 +1,11 @@
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify, flash
-import os
 import psycopg2
-from psycopg2.extras import RealDictCursor
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import date
-from dotenv import load_dotenv
 from init_db import create_all_tables
-
+from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
@@ -20,37 +18,14 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 DB_URL = os.getenv("DB_URL")
 
 def restaurant_db():
-    conn = psycopg2.connect(DB_URL, cursor_factory=RealDictCursor)
+    conn = psycopg2.connect(DB_URL)
     return conn
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def ensure_admin_table():
-    conn = restaurant_db()
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS admin_users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(100) UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL)''')
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-def add_column_if_missing():
-    conn = restaurant_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT special_request FROM reservations LIMIT 1")
-    except Exception:
-        cursor.execute("ALTER TABLE reservations ADD COLUMN special_request TEXT")
-        conn.commit()
-    cursor.close()
-    conn.close()
-
 @app.route('/admin/register', methods=['GET', 'POST'])
 def admin_register():
-    ensure_admin_table()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -58,32 +33,32 @@ def admin_register():
         if password != confirm:
             return 'Passwords do not match!'
         hashed = generate_password_hash(password)
-        conn = restaurant_db()
-        cursor = conn.cursor()
+        db = restaurant_db()
+        cursor = db.cursor()
         try:
             cursor.execute('INSERT INTO admin_users (username, password_hash) VALUES (%s, %s)', (username, hashed))
-            conn.commit()
-        except:
+            db.commit()
+        except psycopg2.errors.UniqueViolation:
+            db.rollback()
             return 'Username already exists!'
         finally:
             cursor.close()
-            conn.close()
+            db.close()
         return redirect('/admin/login')
     return render_template('register.html')
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    ensure_admin_table()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        conn = restaurant_db()
-        cursor = conn.cursor()
+        db = restaurant_db()
+        cursor = db.cursor()
         cursor.execute('SELECT * FROM admin_users WHERE username = %s', (username,))
         user = cursor.fetchone()
         cursor.close()
-        conn.close()
-        if user and check_password_hash(user['password_hash'], password):
+        db.close()
+        if user and check_password_hash(user[2], password):
             session['admin_user'] = username
             return redirect('/admin/dashboard')
         else:
@@ -100,12 +75,12 @@ def admin_dashboard():
     if 'admin_user' not in session:
         return redirect('/admin/login')
     today = date.today()
-    conn = restaurant_db()
-    cursor = conn.cursor()
+    db = restaurant_db()
+    cursor = db.cursor()
     cursor.execute("DELETE FROM reservations WHERE reservation_date < %s", (today,))
-    conn.commit()
+    db.commit()
     cursor.execute('SELECT COUNT(*) FROM reservations')
-    booking_count = cursor.fetchone()['count']
+    booking_count = cursor.fetchone()[0]
     cursor.execute('''SELECT name, reservation_date, reservation_time, number_of_guests, special_request FROM reservations
         WHERE reservation_date = %s ORDER BY reservation_time ASC''', (today,))
     todays_guests = cursor.fetchall()
@@ -113,7 +88,7 @@ def admin_dashboard():
         WHERE reservation_date > %s ORDER BY reservation_date ASC, reservation_time ASC''', (today,))
     upcoming_guests = cursor.fetchall()
     cursor.close()
-    conn.close()
+    db.close()
     return render_template('dashboard.html', admin_user=session['admin_user'], booking_count=booking_count,
         todays_guests=todays_guests, upcoming_guests=upcoming_guests,
         admin_controls={
@@ -125,7 +100,6 @@ def admin_dashboard():
 
 @app.route('/')
 def index():
-    ensure_admin_table()
     conn = restaurant_db()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM menu_items')
@@ -146,7 +120,7 @@ def get_signature_dishes():
     dishes = cursor.fetchall()
     cursor.close()
     conn.close()
-    return jsonify(dishes)
+    return jsonify([dict(zip([desc[0] for desc in cursor.description], row)) for row in dishes])
 
 @app.route('/api/menu')
 def get_menu():
@@ -156,7 +130,7 @@ def get_menu():
     menu = cursor.fetchall()
     cursor.close()
     conn.close()
-    return jsonify(menu)
+    return jsonify([dict(zip([desc[0] for desc in cursor.description], row)) for row in menu])
 
 @app.route('/reservations', methods=['GET', 'POST'])
 def reservations():
@@ -179,58 +153,7 @@ def reservations():
         return redirect('/')
     return render_template('reservations.html')
 
-@app.route('/admin/menu')
-def admin_menu():
-    if 'admin_user' not in session:
-        return redirect('/admin/login')
-    conn = restaurant_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM menu_items')
-    menu_items = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('admin_menu.html', menu_items=menu_items)
-
-@app.route('/admin/signature')
-def admin_signature():
-    if 'admin_user' not in session:
-        return redirect('/admin/login')
-    conn = restaurant_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM signature_dishes')
-    signature_dishes = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('admin_signature.html', signature_dishes=signature_dishes)
-
-@app.route('/admin/fusion-vibe')
-def admin_fusion_vibe():
-    if 'admin_user' not in session:
-        return redirect('/admin/login')
-    conn = restaurant_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM fusion_vibe')
-    vibe_items = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('admin_fusion_vibe.html', fusion_items=vibe_items)
-
-@app.route('/admin/gallery')
-def admin_gallery():
-    if 'admin_user' not in session:
-        return redirect('/admin/login')
-    conn = restaurant_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM gallery')
-    gallery_items = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('admin_gallery.html', gallery_items=gallery_items)
-
-# Call setup functions
 create_all_tables()
-ensure_admin_table()
-add_column_if_missing()
 
 if __name__ == '__main__':
     app.run(debug=True)
