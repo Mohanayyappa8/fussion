@@ -18,7 +18,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 DB_URL = os.getenv("DATABASE_URL")
 
-
 def restaurant_db():
     conn = psycopg2.connect(DB_URL)
     return conn
@@ -120,9 +119,10 @@ def get_signature_dishes():
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM signature_dishes')
     dishes = cursor.fetchall()
+    result = [dict(zip([desc[0] for desc in cursor.description], row)) for row in dishes]
     cursor.close()
     conn.close()
-    return jsonify([dict(zip([desc[0] for desc in cursor.description], row)) for row in dishes])
+    return jsonify(result)
 
 @app.route('/api/menu')
 def get_menu():
@@ -130,9 +130,10 @@ def get_menu():
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM menu_items')
     menu = cursor.fetchall()
+    result = [dict(zip([desc[0] for desc in cursor.description], row)) for row in menu]
     cursor.close()
     conn.close()
-    return jsonify([dict(zip([desc[0] for desc in cursor.description], row)) for row in menu])
+    return jsonify(result)
 
 @app.route('/reservations', methods=['GET', 'POST'])
 def reservations():
