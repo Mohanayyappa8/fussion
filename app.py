@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify, flash
 import psycopg2
 import os
+from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import date
@@ -15,7 +16,8 @@ UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-DB_URL = os.getenv("DB_URL")
+DB_URL = os.getenv("DATABASE_URL")
+
 
 def restaurant_db():
     conn = psycopg2.connect(DB_URL)
