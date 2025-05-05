@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify, flash
-import sqlite3
 import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import date
-from init_db import create_all_tables
 from dotenv import load_dotenv
+from init_db import create_all_tables
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -15,58 +17,36 @@ UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+DB_URL = os.getenv("DB_URL")
 
 def restaurant_db():
-    db_name = os.getenv("DB_NAME", "restaurant.db")
-    conn = sqlite3.connect(db_name)
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(DB_URL, cursor_factory=RealDictCursor)
     return conn
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def ensure_admin_table():
+    conn = restaurant_db()
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS admin_users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(100) UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL)''')
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def add_column_if_missing():
     conn = restaurant_db()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT special_request FROM reservations LIMIT 1")
-    except sqlite3.OperationalError:
-        try:
-            cursor.execute("ALTER TABLE reservations ADD COLUMN special_request TEXT")
-            print("✅ 'special_request' column added to reservations table.")
-        except Exception as e:
-            print(f"❌ Failed to add column: {e}")
+    except Exception:
+        cursor.execute("ALTER TABLE reservations ADD COLUMN special_request TEXT")
+        conn.commit()
     cursor.close()
     conn.close()
-
-
-def ensure_admin_table():
-    db = restaurant_db()
-    cursor = db.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS admin_users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL)''')
-    db.commit()
-    cursor.close()
-    db.close()
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Ensure admin_users table exists
-admin_table_created = False
-def ensure_admin_table():
-    global admin_table_created
-    if not admin_table_created:
-        db = restaurant_db()
-        cursor = db.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS admin_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL)''')
-        db.commit()
-        cursor.close()
-        db.close()
-        admin_table_created = True
 
 @app.route('/admin/register', methods=['GET', 'POST'])
 def admin_register():
@@ -78,16 +58,16 @@ def admin_register():
         if password != confirm:
             return 'Passwords do not match!'
         hashed = generate_password_hash(password)
-        db = restaurant_db()
-        cursor = db.cursor()
+        conn = restaurant_db()
+        cursor = conn.cursor()
         try:
-            cursor.execute('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)', (username, hashed))
-            db.commit()
-        except sqlite3.IntegrityError:
+            cursor.execute('INSERT INTO admin_users (username, password_hash) VALUES (%s, %s)', (username, hashed))
+            conn.commit()
+        except:
             return 'Username already exists!'
         finally:
             cursor.close()
-            db.close()
+            conn.close()
         return redirect('/admin/login')
     return render_template('register.html')
 
@@ -97,12 +77,12 @@ def admin_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = restaurant_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT * FROM admin_users WHERE username = ?', (username,))
+        conn = restaurant_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM admin_users WHERE username = %s', (username,))
         user = cursor.fetchone()
         cursor.close()
-        db.close()
+        conn.close()
         if user and check_password_hash(user['password_hash'], password):
             session['admin_user'] = username
             return redirect('/admin/dashboard')
@@ -120,20 +100,20 @@ def admin_dashboard():
     if 'admin_user' not in session:
         return redirect('/admin/login')
     today = date.today()
-    db = restaurant_db()
-    cursor = db.cursor()
-    cursor.execute("DELETE FROM reservations WHERE DATE(reservation_date) < ?", (today,))
-    db.commit()
-    cursor.execute('SELECT COUNT(*) AS total FROM reservations')
-    booking_count = cursor.fetchone()['total']
+    conn = restaurant_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM reservations WHERE reservation_date < %s", (today,))
+    conn.commit()
+    cursor.execute('SELECT COUNT(*) FROM reservations')
+    booking_count = cursor.fetchone()['count']
     cursor.execute('''SELECT name, reservation_date, reservation_time, number_of_guests, special_request FROM reservations
-        WHERE DATE(reservation_date) = ? ORDER BY reservation_time ASC''', (today,))
+        WHERE reservation_date = %s ORDER BY reservation_time ASC''', (today,))
     todays_guests = cursor.fetchall()
     cursor.execute('''SELECT name, reservation_date, reservation_time, number_of_guests, special_request FROM reservations
-        WHERE DATE(reservation_date) > ? ORDER BY reservation_date ASC, reservation_time ASC''', (today,))
+        WHERE reservation_date > %s ORDER BY reservation_date ASC, reservation_time ASC''', (today,))
     upcoming_guests = cursor.fetchall()
     cursor.close()
-    db.close()
+    conn.close()
     return render_template('dashboard.html', admin_user=session['admin_user'], booking_count=booking_count,
         todays_guests=todays_guests, upcoming_guests=upcoming_guests,
         admin_controls={
@@ -166,7 +146,7 @@ def get_signature_dishes():
     dishes = cursor.fetchall()
     cursor.close()
     conn.close()
-    return jsonify([dict(d) for d in dishes])
+    return jsonify(dishes)
 
 @app.route('/api/menu')
 def get_menu():
@@ -176,7 +156,7 @@ def get_menu():
     menu = cursor.fetchall()
     cursor.close()
     conn.close()
-    return jsonify([dict(m) for m in menu])
+    return jsonify(menu)
 
 @app.route('/reservations', methods=['GET', 'POST'])
 def reservations():
@@ -191,7 +171,7 @@ def reservations():
         conn = restaurant_db()
         cursor = conn.cursor()
         cursor.execute('''INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, number_of_guests, special_request)
-            VALUES (?, ?, ?, ?, ?, ?,?)''', (name, email, phone, reservation_date, reservation_time, number_of_guests, special_request))
+            VALUES (%s, %s, %s, %s, %s, %s, %s)''', (name, email, phone, reservation_date, reservation_time, number_of_guests, special_request))
         conn.commit()
         cursor.close()
         conn.close()
@@ -199,62 +179,58 @@ def reservations():
         return redirect('/')
     return render_template('reservations.html')
 
-@app.route('/admin/menu', methods=['GET'])
+@app.route('/admin/menu')
 def admin_menu():
     if 'admin_user' not in session:
         return redirect('/admin/login')
-    db = restaurant_db()
-    cursor = db.cursor()
+    conn = restaurant_db()
+    cursor = conn.cursor()
     cursor.execute('SELECT * FROM menu_items')
     menu_items = cursor.fetchall()
     cursor.close()
-    db.close()
+    conn.close()
     return render_template('admin_menu.html', menu_items=menu_items)
 
-@app.route('/admin/signature', methods=['GET'])
+@app.route('/admin/signature')
 def admin_signature():
     if 'admin_user' not in session:
         return redirect('/admin/login')
-    db = restaurant_db()
-    cursor = db.cursor()
+    conn = restaurant_db()
+    cursor = conn.cursor()
     cursor.execute('SELECT * FROM signature_dishes')
     signature_dishes = cursor.fetchall()
     cursor.close()
-    db.close()
+    conn.close()
     return render_template('admin_signature.html', signature_dishes=signature_dishes)
 
-@app.route('/admin/fusion-vibe', methods=['GET'])
+@app.route('/admin/fusion-vibe')
 def admin_fusion_vibe():
     if 'admin_user' not in session:
         return redirect('/admin/login')
-    db = restaurant_db()
-    cursor = db.cursor()
+    conn = restaurant_db()
+    cursor = conn.cursor()
     cursor.execute('SELECT * FROM fusion_vibe')
     vibe_items = cursor.fetchall()
     cursor.close()
-    db.close()
+    conn.close()
     return render_template('admin_fusion_vibe.html', fusion_items=vibe_items)
 
-@app.route('/admin/gallery', methods=['GET'])
+@app.route('/admin/gallery')
 def admin_gallery():
     if 'admin_user' not in session:
         return redirect('/admin/login')
-    db = restaurant_db()
-    cursor = db.cursor()
+    conn = restaurant_db()
+    cursor = conn.cursor()
     cursor.execute('SELECT * FROM gallery')
     gallery_items = cursor.fetchall()
     cursor.close()
-    db.close()
+    conn.close()
     return render_template('admin_gallery.html', gallery_items=gallery_items)
 
-
-
+# Call setup functions
 create_all_tables()
 ensure_admin_table()
 add_column_if_missing()
 
-
 if __name__ == '__main__':
     app.run(debug=True)
-
-

@@ -1,80 +1,83 @@
-import sqlite3
+import psycopg2
+import os
+from dotenv import load_dotenv
 
-def restaurant_db():
-    conn = sqlite3.connect('restaurant.db')
-    return conn
+load_dotenv()
+
+DB_URL = os.getenv("DB_URL")
 
 def create_all_tables():
-    conn = restaurant_db()
-    cursor = conn.cursor()
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cursor = conn.cursor()
 
-    # Admin Users Table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS admin_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
-        )
-    ''')
+        # Admin Users Table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS admin_users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(100) UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            )
+        ''')
 
-    # Menu Items Table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS menu_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT NOT NULL,
-            price REAL NOT NULL,
-            image_url TEXT NOT NULL
-        )
-    ''')
+        # Reservations Table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS reservations (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT,
+                phone TEXT,
+                reservation_date DATE,
+                reservation_time TIME,
+                number_of_guests INTEGER,
+                special_request TEXT
+            )
+        ''')
 
-    # Signature Dishes Table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS signature_dishes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT NOT NULL,
-            price REAL NOT NULL,
-            image_url TEXT NOT NULL
-        )
-    ''')
+        # Menu Items Table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS menu_items (
+                id SERIAL PRIMARY KEY,
+                name TEXT,
+                description TEXT,
+                price REAL,
+                image_url TEXT
+            )
+        ''')
 
-    # Fusion Vibe Table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS fusion_vibe (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            image_url TEXT NOT NULL,
-            caption TEXT
-        )
-    ''')
+        # Signature Dishes Table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS signature_dishes (
+                id SERIAL PRIMARY KEY,
+                name TEXT,
+                description TEXT,
+                price REAL,
+                image_url TEXT
+            )
+        ''')
 
-    # Gallery Table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS gallery (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            image_url TEXT NOT NULL,
-            alt_text TEXT
-        )
-    ''')
+        # Fusion Vibe Table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS fusion_vibe (
+                id SERIAL PRIMARY KEY,
+                image_url TEXT,
+                caption TEXT
+            )
+        ''')
 
-    # Reservations Table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS reservations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT,
-            phone TEXT,
-            reservation_date TEXT,
-            reservation_time TEXT,
-            number_of_guests INTEGER,
-            special_request TEXT
-        )
-    ''')
+        # Gallery Table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS gallery (
+                id SERIAL PRIMARY KEY,
+                image_url TEXT,
+                alt_text TEXT
+            )
+        ''')
 
-    conn.commit()
-    cursor.close()
-    conn.close()
-    print("✅ Tables created successfully!")
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✅ Tables created successfully in PostgreSQL!")
 
-if __name__ == '__main__':
-    create_all_tables()
+    except Exception as e:
+        print(f"❌ Error while creating tables: {e}")
