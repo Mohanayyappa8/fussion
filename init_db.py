@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_URL = os.getenv("DB_URL")
+DB_URL = os.getenv("DATABASE_URL")
 
 def create_all_tables():
     try:
