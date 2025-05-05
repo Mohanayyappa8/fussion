@@ -49,26 +49,22 @@
 </a>
 
     <div class="container">
-        <h2>Manage Signature Dishes</h2>
-        <form action="/admin/signature" method="POST" enctype="multipart/form-data">
-            <input type="text" name="name" placeholder="Dish Name" required>
-            <textarea name="description" placeholder="Description" rows="3" required></textarea>
-            <input type="text" name="price" placeholder="Price (₹)" required>
-            <input type="file" name="image" accept="image/*" required>
-            <button type="submit">Add Dish</button>
-        </form>
+        <h1>Manage Signature Dishes</h1>
+<form method="POST" enctype="multipart/form-data">
+  <input type="text" name="name" placeholder="Dish Name" required>
+  <textarea name="description" placeholder="Description" required></textarea>
+  <input type="file" name="image" accept="image/*" required>
+  <button type="submit">Add Dish</button>
+</form>
+<hr>
+{% for item in signature_items %}
+  <div>
+    <img src="{{ item[3] }}" width="150">
+    <h3>{{ item[1] }}</h3>
+    <p>{{ item[2] }}</p>
+  </div>
+{% endfor %}
 
-        {% for dish in signature_dishes %}
-            <div class="dish-card">
-                <img src="{{ dish.image_url }}" alt="{{ dish.name }}">
-                <h3>{{ dish.name }}</h3>
-                <p>{{ dish.description }}</p>
-                <p><strong>₹{{ dish.price }}</strong></p>
-				<a href="{{ url_for('edit_signature_dish', dish_id=dish['id']) }}" style="color: #f0c330;">Edit</a>
-
-                <a href="/admin/signature/delete/{{ dish.id }}" class="delete-btn">Delete</a>
-            </div>
-        {% endfor %}
     </div>
 </body>
 </html>

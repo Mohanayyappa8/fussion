@@ -201,13 +201,21 @@ def admin_signature():
 
     db = restaurant_db()
     cursor = db.cursor()
+
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
-        image_url = request.form['image_url']
-        cursor.execute("INSERT INTO signature_dishes (name, description, image_url) VALUES (%s, %s, %s)",
-                       (name, description, image_url))
-        db.commit()
+        file = request.files['image']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            image_url = '/' + filepath.replace('\\', '/')
+
+            cursor.execute("INSERT INTO signature_dishes (name, description, image_url) VALUES (%s, %s, %s)",
+                           (name, description, image_url))
+            db.commit()
+
     cursor.execute("SELECT * FROM signature_dishes")
     signature_items = cursor.fetchall()
     cursor.close()
@@ -222,15 +230,39 @@ def admin_fusion_vibe():
 
     db = restaurant_db()
     cursor = db.cursor()
+
     if request.method == 'POST':
-        image_url = request.form['image_url']
-        cursor.execute("INSERT INTO fusion_vibe (image_url) VALUES (%s)", (image_url,))
-        db.commit()
-    cursor.execute("SELECT * FROM fusion_vibe")
+        caption = request.form['caption']
+        file = request.files['image']
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            image_url = '/' + filepath.replace('\\', '/')
+
+            cursor.execute("INSERT INTO fusion_vibe (caption, image_url) VALUES (%s, %s)", (caption, image_url))
+            db.commit()
+
+    cursor.execute("SELECT id, caption, image_url FROM fusion_vibe")
     fusion_items = cursor.fetchall()
     cursor.close()
     db.close()
     return render_template('admin_fusion_vibe.html', fusion_items=fusion_items)
+
+@app.route('/admin/fusion-vibe/delete/<int:id>', methods=['POST'])
+def delete_fusion_item(id):
+    if 'admin_user' not in session:
+        return redirect('/admin/login')
+
+    db = restaurant_db()
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM fusion_vibe WHERE id = %s", (id,))
+    db.commit()
+    cursor.close()
+    db.close()
+    return redirect('/admin/fusion-vibe')
+
 
 # ------------------ ADMIN: GALLERY ------------------
 @app.route('/admin/gallery', methods=['GET', 'POST'])
@@ -240,15 +272,37 @@ def admin_gallery():
 
     db = restaurant_db()
     cursor = db.cursor()
+
     if request.method == 'POST':
-        image_url = request.form['image_url']
-        cursor.execute("INSERT INTO gallery (image_url) VALUES (%s)", (image_url,))
-        db.commit()
-    cursor.execute("SELECT * FROM gallery")
+        alt_text = request.form['alt_text']
+        file = request.files['image']
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            image_url = '/' + filepath.replace('\\', '/')
+
+            cursor.execute("INSERT INTO gallery (alt_text, image_url) VALUES (%s, %s)", (alt_text, image_url))
+            db.commit()
+
+    cursor.execute("SELECT id, alt_text, image_url FROM gallery")
     gallery_items = cursor.fetchall()
     cursor.close()
     db.close()
     return render_template('admin_gallery.html', gallery_items=gallery_items)
+@app.route('/admin/gallery/delete/<int:id>', methods=['POST'])
+def delete_gallery_item(id):
+    if 'admin_user' not in session:
+        return redirect('/admin/login')
+
+    db = restaurant_db()
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM gallery WHERE id = %s", (id,))
+    db.commit()
+    cursor.close()
+    db.close()
+    return redirect('/admin/gallery')
 
 
 
