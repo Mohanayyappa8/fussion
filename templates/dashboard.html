@@ -100,11 +100,11 @@
           </tr>
           {% for guest in todays_guests %}
           <tr>
-            <td>{{ guest['name'] or '-' }}</td>
-            <td>{{ guest['reservation_date'] or '-' }}</td>
-            <td>{{ guest['reservation_time'] or '-' }}</td>
-            <td>{{ guest['number_of_guests'] or '-' }}</td>
-            <td>{{ guest['special_request'] or '-' }}</td>
+            <td>{{ guest[0] or '-' }}</td>
+            <td>{{ guest[1] or '-' }}</td>
+            <td>{{ guest[2] or '-' }}</td>
+            <td>{{ guest[3] or '-' }}</td>
+            <td>{{ guest[4] or '-' }}</td>
           </tr>
           {% endfor %}
         </table>
@@ -124,11 +124,11 @@
           </tr>
           {% for guest in upcoming_guests %}
           <tr>
-            <td>{{ guest['name'] or '-' }}</td>
-            <td>{{ guest['reservation_date'] or '-' }}</td>
-            <td>{{ guest['reservation_time'] or '-' }}</td>
-            <td>{{ guest['number_of_guests'] or '-' }}</td>
-            <td>{{ guest['special_request'] or '-' }}</td>
+            <td>{{ guest[0] or '-' }}</td>
+            <td>{{ guest[1] or '-' }}</td>
+            <td>{{ guest[2] or '-' }}</td>
+            <td>{{ guest[3] or '-' }}</td>
+            <td>{{ guest[4] or '-' }}</td>
           </tr>
           {% endfor %}
         </table>
